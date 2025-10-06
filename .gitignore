@@ -5,6 +5,7 @@
 /.env.*.local
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
+/public/uploads/
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
@@ -14,7 +15,6 @@
 ###< lexik/jwt-authentication-bundle ###
 
 /node_modules/
-/.php-cs-fixer.cache
 /.rector
 /.phpunit.result.cache
 /.idea
@@ -28,3 +28,5 @@ phpstan.neon
 /.php-cs-fixer.php
 /.php-cs-fixer.cache
 ###< friendsofphp/php-cs-fixer ###
+
+Makefile

@@ -15,10 +15,17 @@ services:
     # please note that last definitions always *replace* previous ones
     App\Domain\:
         resource: '../src/Domain/'
+        exclude:
+            - '../src/Domain/**/Entity/*'
+            - '../src/Domain/**/Enum/*'
+            - '../src/Domain/**/ValueObject/*'
+            - '../src/Domain/**/Repository/*Interface.php'
         public: false
 
     App\Application\:
         resource: '../src/Application/'
+        exclude:
+            - '../src/Application/**/DTO/*'
         public: false
 
     App\Infrastructure\:
@@ -28,3 +35,9 @@ services:
     App\Interface\Http\Controller\:
         resource: '../src/Interface/Http/Controller/'
         tags: [ 'controller.service_arguments' ]
+
+    App\Domain\User\Repository\UserRepositoryInterface:
+        alias: App\Infrastructure\Persistence\Doctrine\User\DoctrineUserRepository
+
+    App\Domain\User\Repository\UserCredentialRepositoryInterface:
+        alias: App\Infrastructure\Persistence\Doctrine\User\DoctrineUserCredentialRepository
