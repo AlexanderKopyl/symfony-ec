@@ -1,8 +1,19 @@
 framework:
+    secret: '%env(APP_SECRET)%'
+    session: false
+    http_method_override: false
+    handle_all_throwables: true
+    serializer:
+        enable_attributes: true
+    validation:
+        enable_attributes: true
+    php_errors:
+        log: true
     router:
         # Configure how to generate URLs in non-HTTP contexts, such as CLI commands.
         # See https://symfony.com/doc/current/routing.html#generating-urls-in-commands
         default_uri: '%env(DEFAULT_URI)%'
+        utf8: true
 
 when@prod:
     framework:

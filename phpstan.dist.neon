@@ -1,0 +1,16 @@
+includes:
+    - vendor/phpstan/phpstan-symfony/extension.neon
+    - vendor/phpstan/phpstan-doctrine/extension.neon
+
+parameters:
+  level: 7
+  paths:
+    - src
+    - config
+    - tests
+  tmpDir: var/phpstan
+  excludePaths:
+    analyse:
+      - %currentWorkingDirectory%/var/*
+      - %currentWorkingDirectory%/vendor/*
+  reportUnmatchedIgnoredErrors: false

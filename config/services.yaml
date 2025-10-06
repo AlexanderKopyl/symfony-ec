@@ -11,10 +11,20 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
-    App\:
-        resource: '../src/'
-
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    App\Domain\:
+        resource: '../src/Domain/'
+        public: false
+
+    App\Application\:
+        resource: '../src/Application/'
+        public: false
+
+    App\Infrastructure\:
+        resource: '../src/Infrastructure/'
+        public: false
+
+    App\Interface\Http\Controller\:
+        resource: '../src/Interface/Http/Controller/'
+        tags: [ 'controller.service_arguments' ]
