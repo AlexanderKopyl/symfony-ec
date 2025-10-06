@@ -11,7 +11,8 @@ use App\Domain\User\Repository\UserCredentialRepositoryInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-final class DoctrineUserCredentialRepository extends ServiceEntityRepository implements UserCredentialRepositoryInterface
+/** @extends ServiceEntityRepository<UserCredential> */
+class DoctrineUserCredentialRepository extends ServiceEntityRepository implements UserCredentialRepositoryInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -27,43 +28,49 @@ final class DoctrineUserCredentialRepository extends ServiceEntityRepository imp
 
     public function byId(int $id): ?UserCredential
     {
-        return $this->find($id);
+        /** @var UserCredential|null $res */
+        $res = $this->find($id);
+        return $res;
     }
 
-    public function byTypeAndIdentifier(CredentialType $type, string $identifier): ?UserCredential
+    public function byTypeAndLogin(CredentialType $type, string $login): ?UserCredential
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.type = :t AND c.identifier = :i')
-            ->setParameter('t', $type)
-            ->setParameter('i', $identifier)
+        /** @var UserCredential|null $res */
+        $res = $this->createQueryBuilder('c')
+            ->andWhere('c.type = :t AND c.login = :l')
+            ->setParameter('t', $type)   // enum маппится Doctrine ORM 3 сам
+            ->setParameter('l', $login)
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+
+        return $res;
     }
 
+    /** @return list<UserCredential> */
     public function allOfUser(User $user): array
     {
         /** @var list<UserCredential> $rows */
-        $rows = $this->findBy(['user' => $user], ['primary' => 'DESC', 'id' => 'ASC']);
-
+        $rows = $this->findBy(['user' => $user], ['id' => 'ASC']);
         return $rows;
     }
 
     public function primaryOfUser(User $user): ?UserCredential
     {
-        return $this->createQueryBuilder('c')
+        /** @var UserCredential|null $res */
+        $res = $this->createQueryBuilder('c')
             ->andWhere('c.user = :u AND c.primary = true')
             ->setParameter('u', $user)
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+
+        return $res;
     }
 
-    public function byTypeAndLogin(string $type, string $login): ?UserCredential
+    // Если кому-то нужен старый метод — просто проксируем (опционально)
+    public function byTypeAndIdentifier(CredentialType $type, string $identifier): ?UserCredential
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.type = :t AND c.login = :l')
-            ->setParameter('t', $type)->setParameter('l', $login)
-            ->setMaxResults(1)->getQuery()->getOneOrNullResult();
+        return $this->byTypeAndLogin($type, $identifier);
     }
 }

@@ -22,7 +22,7 @@ return (new PhpCsFixer\Config())
     ->setRules([
         '@Symfony' => true,
         '@Symfony:risky' => true,
-        '@PHP82Migration' => true,
+        '@PHP8x3Migration' => true,
         'declare_strict_types' => true,
         'strict_param' => true,
         'ordered_imports' => ['imports_order' => ['class', 'function', 'const']],

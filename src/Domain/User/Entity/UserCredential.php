@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\User\Entity;
 
+use App\Domain\Shared\Contract\TimestampAwareInterface;
 use App\Domain\Shared\Trait\Timestamp;
 use App\Domain\User\Enum\CredentialType; // <─ ВАЖНО: импорт enum
 use Doctrine\ORM\Mapping as ORM;
@@ -21,7 +22,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
     ]
 )]
 #[UniqueEntity('login', message: 'user.unique_field', groups: ['default', 'unique_email'])]
-class UserCredential
+class UserCredential implements TimestampAwareInterface
 {
     use Timestamp;
 
@@ -59,8 +60,8 @@ class UserCredential
 
     public function __construct(CredentialType $type, User $user, string $login)
     {
-        $this->type  = $type;
-        $this->user  = $user;
+        $this->type = $type;
+        $this->user = $user;
         $this->login = $login;
         $this->stampOnCreate();
     }
@@ -126,7 +127,7 @@ class UserCredential
 
     public function setResetToken(?string $token, ?\DateTimeImmutable $expiresAt): void
     {
-        $this->resetToken        = $token;
+        $this->resetToken = $token;
         $this->resetTokenExpired = $expiresAt;
         $this->stampOnUpdate();
     }

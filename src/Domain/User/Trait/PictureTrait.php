@@ -51,10 +51,10 @@ trait PictureTrait
 
     public function erasePicture(): void
     {
-        $this->pictureFile         = null;
-        $this->pictureName         = null;
-        $this->pictureSize         = null;
-        $this->pictureMimeType     = null;
+        $this->pictureFile = null;
+        $this->pictureName = null;
+        $this->pictureSize = null;
+        $this->pictureMimeType = null;
         $this->pictureOriginalName = null;
     }
 
@@ -65,14 +65,13 @@ trait PictureTrait
 
     /**
      * @param File|UploadedFile|null $pictureFile
-     *
-     * @return UserAvatar|PictureTrait
+     * @return static
      */
     public function setPictureFile(File|UploadedFile|null $pictureFile): self
     {
         $this->pictureFile = $pictureFile;
-        if ($pictureFile !== null) {
-            $this->updatedAt = new \DateTimeImmutable('now');
+        if (null !== $pictureFile) {
+            $this->stampOnUpdate();
         }
 
         return $this;

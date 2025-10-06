@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\User\Entity;
 
+use App\Domain\Shared\Contract\TimestampAwareInterface;
 use App\Domain\Shared\Trait\Timestamp;
 use App\Domain\User\Trait\PictureTrait;
 use Doctrine\ORM\Mapping as ORM;
@@ -12,7 +13,7 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 #[ORM\Entity]
 #[ORM\Table(name: 'user_avatars')]
 #[Vich\Uploadable]
-class UserAvatar
+class UserAvatar implements TimestampAwareInterface
 {
     use PictureTrait;
     use Timestamp;

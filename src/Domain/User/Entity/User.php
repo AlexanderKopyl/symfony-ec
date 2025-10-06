@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\User\Entity;
 
 use App\Application\User\DTO\TokenPair;
+use App\Domain\Shared\Contract\TimestampAwareInterface;
 use App\Domain\Shared\Trait\Timestamp;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,15 +14,14 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation as Serializer;
 use Symfony\Component\Validator\Constraints as Assert;
-use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'users')]
-#[Vich\Uploadable] // Vich активируем на сущности
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface, TimestampAwareInterface
 {
     use Timestamp;
-    public const ROLE_USER       = 'ROLE_USER';
+
+    public const ROLE_USER = 'ROLE_USER';
     public const PROPERTY_PREFIX = 'u';
 
     #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
@@ -50,6 +50,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Serializer\Groups(['user_view'])]
     private ?string $googleId = null;
 
+    /**
+     * @var list<string> $roles
+     */
     #[ORM\Column(name: 'roles', type: 'json')]
     private array $roles = [];
 
@@ -88,25 +91,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Serializer\Groups(['user_view'])]
     private ?int $gender = null;
 
-    // --- связи из старого проекта будем включать по мере переноса доменов ---
-    // см. твой список — оставляю закомментированными, чтобы валидация схему не роняла
-
     private ?string $emailVerificationCode = null;
     private ?string $phoneVerificationCode = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $ocCustomerId = null;
 
-    /** @var Collection<UserCredential> */
+    /** @var Collection<int, UserCredential> */
     #[ORM\OneToMany(targetEntity: UserCredential::class, mappedBy: 'user')]
     private Collection $credentials;
 
     private ?string $lastIp = null;
 
     #[Serializer\Groups(['jwt_token_view'])]
-    private ?TokenPair $newTokens = null; // твой VO
+    private ?TokenPair $newTokens = null;
 
-    // в старом проекте был кастомный тип datetimeutc_immutable — пока оставим стандартный
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $ordersSyncAt = null;
 
@@ -122,8 +121,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         mappedBy: 'user',
         cascade: ['remove'],
         orphanRemoval: true
-    )
-    ]
+    )]
     private ?UserAvatar $avatar = null;
 
     public function __construct()
@@ -133,9 +131,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     // ===== Security =====
+
+    /**
+     * @return non-empty-string
+     *
+     * @phpstan-return non-empty-string
+     */
     public function getUserIdentifier(): string
     {
-        return $this->email ?? $this->phone ?? (string) ($this->id ?? '');
+        $email = null !== $this->email ? trim($this->email) : '';
+        if ('' !== $email) {
+            return $email;
+        }
+
+        $phone = null !== $this->phone ? trim($this->phone) : '';
+        if ('' !== $phone) {
+            return $phone;
+        }
+
+        return null !== $this->id ? (string) $this->id : 'user#'.spl_object_id($this);
     }
 
     public function getPassword(): ?string
@@ -163,12 +177,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return array_values(array_unique($roles));
     }
 
+    /** @param list<string> $roles */
     public function setRoles(array $roles): void
     {
         $this->roles = array_values(array_unique($roles));
     }
 
-    // ===== getters (все поля) =====
+    // ===== getters =====
     public function id(): ?int
     {
         return $this->id;
@@ -254,13 +269,53 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->bonusPoints;
     }
 
-    /** @return Collection<UserCredential> */
+    public function emailVerificationCode(): ?string
+    {
+        return $this->emailVerificationCode;
+    }
+
+    public function setEmailVerificationCode(?string $code): void
+    {
+        $this->emailVerificationCode = $code;
+    }
+
+    public function phoneVerificationCode(): ?string
+    {
+        return $this->phoneVerificationCode;
+    }
+
+    public function setPhoneVerificationCode(?string $code): void
+    {
+        $this->phoneVerificationCode = $code;
+    }
+
+    public function lastIp(): ?string
+    {
+        return $this->lastIp;
+    }
+
+    public function setLastIp(?string $ip): void
+    {
+        $this->lastIp = $ip;
+    }
+
+    public function newTokens(): ?TokenPair
+    {
+        return $this->newTokens;
+    }
+
+    public function setNewTokens(?TokenPair $pair): void
+    {
+        $this->newTokens = $pair;
+    }
+
+    /** @return Collection<int, UserCredential> */
     public function credentials(): Collection
     {
         return $this->credentials;
     }
 
-    // ===== setters (со stampOnUpdate где это БД-поля) =====
+    // ===== setters (со stampOnUpdate) =====
     public function setEmail(?string $email): void
     {
         $this->email = $email;
@@ -293,7 +348,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setPasswordToken(?string $token, ?\DateTimeInterface $expiresAt): void
     {
-        $this->passwordToken        = $token;
+        $this->passwordToken = $token;
         $this->passwordTokenExpired = $expiresAt;
         $this->stampOnUpdate();
     }

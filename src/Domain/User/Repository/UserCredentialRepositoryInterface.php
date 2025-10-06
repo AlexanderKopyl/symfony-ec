@@ -21,5 +21,5 @@ interface UserCredentialRepositoryInterface
 
     public function primaryOfUser(User $user): ?UserCredential;
 
-    public function byTypeAndLogin(string $type, string $login): ?UserCredential;
+    public function byTypeAndLogin(CredentialType $type, string $login): ?UserCredential;
 }
